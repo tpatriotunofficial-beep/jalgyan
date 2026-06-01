@@ -42,7 +42,8 @@ def index():
 @app.route("/api/chat", methods=["POST"])
 def chat():
     data = request.json
-    user_query = data.get("message", "")
+    messages = data.get("messages", [])
+    user_query = messages[-1]["content"] if messages else ""
     messages = data.get("messages", [])
 
     if not user_query:
