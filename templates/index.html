@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jal Gyan — Water Quality Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --deep:    #0a3d5c;
+    --mid:     #1a6b8a;
+    --light:   #2ba4cc;
+    --pale:    #e0f4fb;
+    --foam:    #f4fbff;
+    --gold:    #e8a020;
+    --green:   #2d8c4e;
+    --red:     #c0392b;
+    --amber:   #d4861a;
+    --text:    #0d2a36;
+    --muted:   #5a7d8e;
+    --border:  rgba(26,107,138,0.15);
+    --surface: #f5fafd;
+    --card:    #ffffff;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ---- HEADER ---- */
+  .header {
+    background: linear-gradient(135deg, var(--deep) 0%, var(--mid) 100%);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 12px rgba(10,61,92,0.18);
+  }
+  .logo { font-size: 26px; }
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #fff;
+    font-weight: 500;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+  .header-badges {
+    margin-left: auto;
+    display: flex;
+    gap: 7px;
+  }
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 100px;
+    letter-spacing: 0.04em;
+  }
+  .badge-india { background: rgba(255,153,51,0.22); border: 1px solid rgba(255,153,51,0.4); color: #ffd088; }
+  .badge-eu    { background: rgba(100,149,237,0.2);  border: 1px solid rgba(100,149,237,0.35); color: #aaccff; }
+  .badge-epa   { background: rgba(80,200,100,0.18);  border: 1px solid rgba(80,200,100,0.35); color: #aaeeaa; }
+
+  /* ---- LAYOUT ---- */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ---- SIDEBAR ---- */
+  .sidebar {
+    width: 230px;
+    flex-shrink: 0;
+    background: var(--deep);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 16px 0 16px;
+  }
+  .sb-section {
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    padding: 0 16px 8px;
+    font-weight: 600;
+  }
+  .sb-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-left: 2px solid transparent;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.4;
+    transition: all 0.15s;
+  }
+  .sb-btn:hover {
+    background: rgba(255,255,255,0.07);
+    color: #fff;
+    border-left-color: var(--light);
+  }
+  .sb-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+    margin: 12px 16px;
+  }
+  .sb-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 16px 4px;
+  }
+  .sb-select {
+    width: calc(100% - 32px);
+    margin: 0 16px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 6px;
+    color: rgba(255,255,255,0.8);
+    font-size: 11px;
+    padding: 5px 8px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+  .sb-select option { background: #0a3d5c; }
+  .sb-note {
+    padding: 12px 16px 0;
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.5;
+  }
+
+  /* ---- CHAT AREA ---- */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+
+  /* Welcome card */
+  .welcome {
+    background: linear-gradient(135deg, rgba(43,164,204,0.07), rgba(45,140,78,0.05));
+    border: 1px solid rgba(43,164,204,0.2);
+    border-radius: 16px;
+    padding: 28px 32px;
+    text-align: center;
+  }
+  .welcome h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--mid);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  .welcome p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto 18px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    justify-content: center;
+  }
+  .chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: var(--mid);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .chip:hover {
+    background: var(--pale);
+    border-color: var(--light);
+    transform: translateY(-1px);
+  }
+
+  /* Message rows */
+  .msg-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    animation: slideIn 0.22s ease;
+  }
+  .msg-row.user { flex-direction: row-reverse; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 15px;
+  }
+  .avatar.bot  { background: linear-gradient(135deg, var(--mid), var(--light)); }
+  .avatar.user { background: #2d3e47; color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 600; }
+
+  .bubble {
+    max-width: 72%;
+    padding: 11px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .bubble.bot {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px 14px 14px 14px;
+    color: var(--text);
+  }
+  .bubble.user {
+    background: var(--deep);
+    color: rgba(255,255,255,0.92);
+    border-radius: 14px 3px 14px 14px;
+  }
+
+  /* Markdown rendering */
+  .bubble.bot strong { color: var(--deep); font-weight: 600; }
+  .bubble.bot em     { color: var(--muted); font-style: italic; }
+  .bubble.bot code   { background: var(--pale); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; color: var(--mid); font-family: 'Courier New', monospace; }
+  .bubble.bot ul, .bubble.bot ol { padding-left: 20px; margin: 6px 0; }
+  .bubble.bot li     { margin: 3px 0; }
+  .bubble.bot p      { margin: 6px 0; }
+  .bubble.bot h3, .bubble.bot h4 { font-size: 13.5px; font-weight: 600; color: var(--deep); margin: 10px 0 4px; }
+  .bubble.bot table  { border-collapse: collapse; font-size: 12.5px; margin: 8px 0; width: 100%; }
+  .bubble.bot th     { background: var(--pale); padding: 5px 10px; text-align: left; color: var(--deep); font-weight: 600; border-bottom: 1.5px solid var(--border); }
+  .bubble.bot td     { padding: 4px 10px; border-bottom: 0.5px solid var(--border); }
+  .bubble.bot tr:last-child td { border-bottom: none; }
+  .bubble.bot blockquote { border-left: 3px solid var(--light); padding-left: 12px; color: var(--muted); margin: 6px 0; }
+
+  /* Sources */
+  .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 0.5px solid var(--border);
+  }
+  .src-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.03em;
+  }
+  .src-india { background: rgba(255,153,51,0.12); color: #a06200; border: 1px solid rgba(255,153,51,0.28); }
+  .src-eu    { background: rgba(63,120,230,0.1);  color: #1a3d8a; border: 1px solid rgba(63,120,230,0.22); }
+  .src-epa   { background: rgba(45,140,78,0.1);   color: #155028; border: 1px solid rgba(45,140,78,0.22); }
+  .src-who   { background: rgba(180,100,200,0.1); color: #5a1a7a; border: 1px solid rgba(180,100,200,0.22); }
+  .src-cpcb  { background: rgba(200,100,50,0.1);  color: #7a2800; border: 1px solid rgba(200,100,50,0.22); }
+
+  /* Typing indicator */
+  .typing { display: flex; gap: 5px; align-items: center; padding: 10px 16px; }
+  .dot {
+    width: 7px; height: 7px;
+    background: var(--mid);
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: bounce 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,60%,100% { transform: translateY(0); opacity: 0.3; }
+    30%          { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ---- INPUT BAR ---- */
+  .input-bar {
+    padding: 12px 20px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .input-wrap { flex: 1; position: relative; }
+  textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--surface);
+    resize: none;
+    min-height: 42px;
+    max-height: 120px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  textarea:focus { border-color: var(--mid); }
+  textarea::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 42px; height: 42px;
+    background: var(--mid);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover   { background: var(--deep); }
+  .send-btn:active  { transform: scale(0.97); }
+  .send-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  /* ---- STATUS BAR ---- */
+  .status-bar {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 5px 20px;
+    background: var(--card);
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2.5s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-thumb { background: rgba(26,107,138,0.18); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <span class="logo">💧</span>
+  <div>
+    <div class="header-title">Jal Gyan — Water Quality Assistant</div>
+    <div class="header-sub">India · BIS IS 10500 · CPCB · EU 2020 · US EPA SDWA</div>
+  </div>
+  <div class="header-badges">
+    <span class="badge badge-india">BIS / CPCB</span>
+    <span class="badge badge-eu">EU 2020</span>
+    <span class="badge badge-epa">US EPA</span>
+  </div>
+</header>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">Quick Questions</div>
+    <button class="sb-btn" onclick="ask('What is the safe limit for arsenic in drinking water in India?')">🔬 Arsenic limits India</button>
+    <button class="sb-btn" onclick="ask('Compare fluoride limits across US EPA, EU, and Indian BIS standards')">⚗️ Fluoride comparison</button>
+    <button class="sb-btn" onclick="ask('What are BIS IS 10500 parameters for drinking water? Give me the full list.')">📋 Full BIS IS 10500 list</button>
+    <button class="sb-btn" onclick="ask('How does CPCB classify river water quality? Explain all classes.')">🏞️ CPCB river classes</button>
+    <button class="sb-btn" onclick="ask('What should I test for in groundwater in India?')">🌊 Groundwater testing</button>
+    <button class="sb-btn" onclick="ask('Is lead allowed in drinking water? Compare India, EU and EPA limits.')">🚫 Lead regulations</button>
+    <button class="sb-btn" onclick="ask('What are the CPCB industrial effluent discharge standards for BOD, COD and TSS?')">🏭 Industrial effluent</button>
+    <button class="sb-btn" onclick="ask('What are E. coli and microbial standards for drinking water in India?')">🦠 Microbial standards</button>
+    <button class="sb-btn" onclick="ask('What are the key water laws and programmes in India like Jal Jeevan Mission?')">⚖️ Indian water laws</button>
+    <button class="sb-btn" onclick="ask('Which parameter has the strictest limit — India vs EU vs EPA comparison?')">📊 Full standards comparison</button>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section">Settings</div>
+    <div class="sb-label">Region focus</div>
+    <select class="sb-select" id="regionFocus">
+      <option value="india">India (primary)</option>
+      <option value="all">All standards</option>
+      <option value="compare">Comparison mode</option>
+    </select>
+    <div class="sb-label" style="margin-top:8px">Water type</div>
+    <select class="sb-select" id="waterType">
+      <option value="drinking">Drinking water</option>
+      <option value="surface">Surface / river</option>
+      <option value="groundwater">Groundwater</option>
+      <option value="industrial">Industrial effluent</option>
+      <option value="all">All types</option>
+    </select>
+
+    <div class="sb-divider"></div>
+    <div class="sb-note">
+      RAG knowledge base: BIS IS 10500:2012 · CPCB 2024 · EU Directive 2020/2184 · US EPA SDWA · WHO 2022
+    </div>
+  </aside>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area">
+    <div class="messages" id="messages">
+      <div class="welcome">
+        <h1>💧 Jal Gyan</h1>
+        <p>Your water quality expert for India. Ask about drinking water standards, contaminant limits, river classifications, or how Indian norms compare to EU and US EPA regulations.</p>
+        <div class="chips">
+          <span class="chip" onclick="ask('What is the permissible limit for TDS in Indian drinking water?')">TDS limits</span>
+          <span class="chip" onclick="ask('Is 0.05 mg/L arsenic safe for drinking water in India?')">Arsenic safety check</span>
+          <span class="chip" onclick="ask('What is the pH range for safe drinking water in India vs EU?')">pH comparison</span>
+          <span class="chip" onclick="ask('What are nitrate limits in India and why are they important?')">Nitrate standards</span>
+          <span class="chip" onclick="ask('Which states in India have the worst groundwater contamination?')">India hotspots</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- INPUT BAR -->
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea id="userInput"
+          placeholder="Ask about water quality standards, contaminant limits, or India vs global norms…"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">➤</button>
+    </div>
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      RAG system active — 12 knowledge chunks indexed from BIS IS 10500, CPCB, EU 2020, US EPA SDWA
+    </div>
+  </div>
+</div>
+
+<script>
+  // Conversation history for multi-turn context
+  let history = [];
+  let isLoading = false;
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function ask(question) {
+    document.getElementById('userInput').value = question;
+    sendMessage();
+  }
+
+  function addUserMsg(text) {
+    const row = document.createElement('div');
+    row.className = 'msg-row user';
+    row.innerHTML = `
+      <div class="avatar user">You</div>
+      <div class="bubble user">${escapeHtml(text)}</div>`;
+    document.getElementById('messages').appendChild(row);
+    scrollBottom();
+  }
+
+  function addTyping() {
+    const row = document.createElement('div');
+    row.className = 'msg-row bot';
+    row.id = 'typing';
+    row.innerHTML = `
+      <div class="avatar bot">💧</div>
+      <div class="bubble bot"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+    document.getElementById('messages').appendChild(row);
+    scrollBottom();
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typing');
+    if (t) t.remove();
+  }
+
+  function addBotMsg(text, sources) {
+    const row = document.createElement('div');
+    row.className = 'msg-row bot';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble bot';
+    bubble.innerHTML = renderMarkdown(text);
+
+    if (sources && sources.length) {
+      const srcRow = document.createElement('div');
+      srcRow.className = 'sources';
+      sources.forEach(s => {
+        const tag = document.createElement('span');
+        tag.className = 'src-tag ' + sourceClass(s);
+        tag.textContent = s;
+        srcRow.appendChild(tag);
+      });
+      bubble.appendChild(srcRow);
+    }
+
+    row.innerHTML = `<div class="avatar bot">💧</div>`;
+    row.appendChild(bubble);
+    document.getElementById('messages').appendChild(row);
+    scrollBottom();
+  }
+
+  function sourceClass(src) {
+    if (/BIS|IS 10500/i.test(src)) return 'src-india';
+    if (/CPCB|CGWB/i.test(src)) return 'src-cpcb';
+    if (/EU|European|2020/i.test(src)) return 'src-eu';
+    if (/EPA|SDWA/i.test(src)) return 'src-epa';
+    if (/WHO/i.test(src)) return 'src-who';
+    return 'src-india';
+  }
+
+  // Streaming bot message — creates element, updates in place
+  function createStreamingBubble() {
+    const row = document.createElement('div');
+    row.className = 'msg-row bot';
+    row.id = 'streaming';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble bot';
+    bubble.id = 'stream-text';
+    row.innerHTML = `<div class="avatar bot">💧</div>`;
+    row.appendChild(bubble);
+    document.getElementById('messages').appendChild(row);
+    return bubble;
+  }
+
+  async function sendMessage() {
+    if (isLoading) return;
+    const input = document.getElementById('userInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+
+    // Append settings context to query
+    const region = document.getElementById('regionFocus').value;
+    const wtype = document.getElementById('waterType').value;
+    const contextualQuery = `${text}\n[User context: region_focus=${region}, water_type=${wtype}]`;
+
+    addUserMsg(text);
+    history.push({ role: 'user', content: contextualQuery });
+
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    // Use streaming via SSE
+    let accumulated = '';
+    let sources = [];
+    let bubble = null;
+
+    try {
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: history }),
+      });
+
+      if (!resp.ok) throw new Error('API error ' + resp.status);
+
+      bubble = createStreamingBubble();
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const raw = line.slice(6).trim();
+          if (raw === '[DONE]') break;
+
+          try {
+            const evt = JSON.parse(raw);
+            if (evt.type === 'sources') {
+              sources = evt.sources;
+            } else if (evt.type === 'text') {
+              accumulated += evt.text;
+              bubble.innerHTML = renderMarkdown(accumulated);
+              scrollBottom();
+            }
+          } catch {}
+        }
+      }
+
+      // Add sources after streaming done
+      if (sources.length && bubble) {
+        const srcRow = document.createElement('div');
+        srcRow.className = 'sources';
+        sources.forEach(s => {
+          const tag = document.createElement('span');
+          tag.className = 'src-tag ' + sourceClass(s);
+          tag.textContent = s;
+          srcRow.appendChild(tag);
+        });
+        bubble.appendChild(srcRow);
+      }
+
+      // Remove streaming ID
+      const streamEl = document.getElementById('streaming');
+      if (streamEl) streamEl.removeAttribute('id');
+
+      history.push({ role: 'assistant', content: accumulated });
+
+    } catch (err) {
+      removeTyping();
+      addBotMsg('Sorry — there was an error connecting to the server. Make sure Flask is running and your ANTHROPIC_API_KEY is set.', []);
+      console.error(err);
+    }
+
+    isLoading = false;
+    document.getElementById('sendBtn').disabled = false;
+  }
+
+  function scrollBottom() {
+    const msgs = document.getElementById('messages');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function escapeHtml(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Simple markdown → HTML renderer
+  function renderMarkdown(md) {
+    let html = md
+      // Tables (basic)
+      .replace(/^\|(.+)\|$/gm, row => {
+        const cells = row.split('|').slice(1,-1);
+        return '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+      })
+      .replace(/(<tr>.*<\/tr>\n?)+/gs, match => {
+        const rows = match.trim().split('\n');
+        // Check if second row is divider
+        if (rows[1] && /^[\s|:-]+$/.test(rows[1])) {
+          const header = '<thead><tr>' + rows[0].replace('<tr>','').replace('</tr>','')
+            .replace(/<td>/g,'<th>').replace(/<\/td>/g,'</th>') + '</tr></thead>';
+          const body = '<tbody>' + rows.slice(2).join('\n') + '</tbody>';
+          return `<table>${header}${body}</table>`;
+        }
+        return `<table><tbody>${match}</tbody></table>`;
+      })
+      // Headings
+      .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+      // Bold / italic / code
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      // Blockquote
+      .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+      // Lists
+      .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>[\s\S]+?<\/li>\n?)+/g, match => `<ul>${match}</ul>`)
+      // Paragraphs
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>');
+
+    return `<p>${html}</p>`;
+  }
+</script>
+</body>
+</html>
