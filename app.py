@@ -25,15 +25,11 @@ Response rules:
 1. Always cite which standard you are using: [BIS IS 10500], [CPCB], [US EPA], [EU 2020], [WHO].
 2. Prioritize Indian (BIS/CPCB) context - the user is in India.
 3. Use specific numbers, units (mg/L, NTU, CFU/100mL, Bq/L), and parameter names.
-4. For safety questions ("is X mg/L safe?"), compare against Indian BIS limits first.
-5. Mention India-specific hotspots for contaminants (e.g., arsenic in Bengal, fluoride in Rajasthan).
-6. Use plain, clear English. Avoid jargon where possible.
-7. Format responses with markdown: use **bold** for limits, `code` for parameter names, tables where helpful.
-8. If asked about a contaminant not in the provided context, say so clearly and refer to BIS IS 10500 for the full list.
-9. For industrial discharge questions, always reference CPCB General Standards (Schedule VI, EPA 1986).
-10. Keep responses focused and actionable - include testing recommendations where relevant.
-
-The RAG context below contains the relevant extracted knowledge. Use it as your primary source."""
+4. For safety questions, compare against Indian BIS limits first.
+5. Mention India-specific hotspots for contaminants.
+6. Use plain, clear English.
+7. Format responses with markdown.
+8. Keep responses focused and actionable."""
 
 @app.route("/")
 def index():
@@ -44,7 +40,6 @@ def chat():
     data = request.json
     messages = data.get("messages", [])
     user_query = messages[-1]["content"] if messages else ""
-    messages = data.get("messages", [])
 
     if not user_query:
         return jsonify({"error": "No query provided"}), 400
@@ -53,13 +48,14 @@ def chat():
     sources = list({chunk["source"] for chunk in retrieved_chunks})
     full_system = f"{SYSTEM_PROMPT}\n\n--- RETRIEVED KNOWLEDGE BASE CONTEXT ---\n{context}\n--- END CONTEXT ---"
 
+    full_messages = [{"role": "system", "content": full_system}] + messages
+
     def generate():
         yield f"data: {json.dumps({'type': 'sources', 'sources': sources})}\n\n"
         stream = client.chat.completions.create(
             model="llama3-8b-8192",
             max_tokens=1024,
-            system=full_system,
-            messages=messages,
+            messages=full_messages,
             stream=True,
         )
         for chunk in stream:
@@ -76,7 +72,6 @@ def chat():
 
 @app.route("/api/knowledge", methods=["GET"])
 def knowledge_stats():
-    """Return stats about the knowledge base."""
     return jsonify({
         "total_chunks": len(KNOWLEDGE_CHUNKS),
         "sources": list({c["source"] for c in KNOWLEDGE_CHUNKS}),
